@@ -1,7 +1,8 @@
-# -*- coding: utf-8 -*-
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
-import signal, daemon
+
+import signal, daemon, lockfile
 import sys, os, os.path
 import time
 
@@ -9,7 +10,7 @@ import time
 config = {
     'images_dir': os.path.expanduser(os.path.join('~', 'timelapse_dumps')),
     'max_shots': 50, # How many shots max take before restarting the camera
-    'max_tiume': 1200, # How many seconds max to keep the camera on without restarting
+    'max_time': 1200, # How many seconds max to keep the camera on without restarting
 }
 
 
@@ -18,6 +19,7 @@ class capture(object):
 
 
 class capture_service(object):
+    running = False
     pass
 
     def initialize(self):
@@ -27,11 +29,19 @@ class capture_service(object):
         pass
 
     def stop(self):
+        self.running = False
         pass
+
+    def start(self):
+        self.initialize()
+        self.running = True
+        self.main()
 
     def main(self):
+        while self.running:
+            print "loop"
+            time.sleep(5)
         pass
-
 
 if __name__ == '__main__':
     # Initialize Daemon context
@@ -54,15 +64,21 @@ if __name__ == '__main__':
         sys.exit(1)
 
     if (sys.argv[1] == 'start'):
+        if context.is_open:
+            print "Process is already running"
+            sys.exit(1)
+            
         # TODO: check if already running
         s.initialize()
         with context:
-            s.main()
+            s.start()
         sys.exit(0)
 
     if (sys.argv[1] == 'stop'):
+        
         # TODO: check if running
         s.stop()
+        
 
     print "Unknown command '%s'" % sys.argv[1]
     sys.exit(1)
