@@ -14,7 +14,7 @@ def main():
     while True:
         i += 1
         print 'loop %d\n' % i
-        with open('test_daemon_out.txt', 'w') as f:
+        with open('/tmp/test_daemon_out.txt', 'w') as f:
             f.write('loop %d\n' % i)
         time.sleep(5)
 
@@ -50,9 +50,15 @@ context = daemon.DaemonContext(
 #    stdout=syslog.syslog,
 #    stderr=lambda msg: syslog.syslog(syslog.LOG_ERR, msg)
     stdout=so,
-    stderr=se
+    stderr=se,
+    working_directory='/tmp',
+    pidfile=lockfile.FileLock('/tmp/td.pid')
 )
+
+print "bar"
 with context:
+    print "foo"
     main()
+print "baz"
 
 
