@@ -7,19 +7,27 @@ import time, sys, os, signal
 
 class myapp(object):
     pidfile_path = '/tmp/tbd.pid'
+    running = False
 
     def run(self):
         print 'Run called'
+        self.running = True
         i = 0
-        while True:
+        while self.running:
             i += 1
             print 'loop %d' %i
+            with open('tbd.txt', 'a') as f:
+                f.write('loop %d\n' %i)
             time.sleep(5)
-    
+        os.unlink('tbd.txt')
+
+    def stop(self, *args, **kwargs):
+        self.running = False
 
 
 if __name__ == '__main__':
     instance = myapp()
+    signal.signal(signal.SIGUSR1, instance.stop)
 
     if (len(sys.argv) < 2):
         print "Use 'start' or 'stop' as argument'"
@@ -31,7 +39,7 @@ if __name__ == '__main__':
         if pid:
             print "Running as PID %d" % pid
             sys.exit(1)
-        burrdaemon.run(instance.run, ident='tbd', pidFilePath=instance.pidfile_path)
+        burrdaemon.run(instance.run, dir='/tmp', ident='tbd', pidFilePath=instance.pidfile_path)
         sys.exit(0)
 
     if (sys.argv[1] == 'stop'):
@@ -39,7 +47,7 @@ if __name__ == '__main__':
             print "Not running"
             sys.exit(1)
         try:
-            os.kill(pid, signal.SIGTERM)
+            os.kill(pid, signal.SIGUSR1)
             sys.exit(0)
         except OSError, exc:
             print "Failed to terminate %(pid)d: %(exc)s" % vars()
