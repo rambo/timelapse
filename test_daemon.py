@@ -26,5 +26,6 @@ class myapp(object):
 
 if __name__ == '__main__':
     instance = myapp()
+    #instance.run()
     runner = daemon.runner.DaemonRunner(instance)
     runner.parse_args()
