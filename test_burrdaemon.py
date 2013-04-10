@@ -54,8 +54,8 @@ if __name__ == '__main__':
             print "Not running"
             sys.exit(1)
         try:
-            #os.kill(pid, signal.SIGUSR1)
-            os.kill(pid, signal.SIGTERM)
+            os.kill(pid, signal.SIGUSR1)
+            #os.kill(pid, signal.SIGTERM)
             sys.exit(0)
         except OSError, exc:
             print "Failed to terminate %(pid)d: %(exc)s" % vars()
