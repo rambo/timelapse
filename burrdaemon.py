@@ -281,7 +281,8 @@ def run(
         # the kill system call.
         signal.signal(signal.SIGTERM, signal.default_int_handler)
         try:
-            apply(target, args, kwargs)
+            #apply(target, args, kwargs)
+            target(*args, **kwargs)
         except KeyboardInterrupt:
             if not trapKeyboardInterrupt:
                 raise
