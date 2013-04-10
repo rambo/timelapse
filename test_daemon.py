@@ -2,63 +2,29 @@
 # -*- coding: utf-8 -*-
 
 
-import signal, daemon, lockfile
+import daemon.runner
 import sys, os, os.path, syslog
 import time
 
-syslog.openlog(logoption=syslog.LOG_PID)
 
-def main():
-    i = 0
-    print 'main called'
-    while True:
-        i += 1
-        print 'loop %d\n' % i
-        with open('/tmp/test_daemon_out.txt', 'w') as f:
-            f.write('loop %d\n' % i)
-        time.sleep(5)
-
-class streamproxy:
-    def open(self):
-        pass
+class myapp(object):
+    pidfile_path = '/tmp/td.pid'
+    stdout_path = '/tmp/td.out'
+    stderr_path = '/tmp/td.err'
+    stdin_path = '/tmp/td.in'
+    pidfile_timeout = None
     
-    def close(self):
-        pass
-    
-    def write(self, msg):
-        pass
-    
-    def read(self):
-        return 0x0    
-
-class stdout(streamproxy):
-    def write(self, msg):
-         syslog.syslog(msg)
-
-class stderr(streamproxy):
-    def write(self, msg):
-         syslog.syslog(syslog.LOG_ERR, msg)
-    
-so = stdout()
-so.write('stdout proxy test')
-
-se = stderr()
-se.write('stderr proxy test')
-
-context = daemon.DaemonContext(
-# This won't work the callbacks need to look like file objects so a wrapper is needed
-#    stdout=syslog.syslog,
-#    stderr=lambda msg: syslog.syslog(syslog.LOG_ERR, msg)
-    stdout=so,
-    stderr=se,
-    working_directory='/tmp',
-    pidfile=lockfile.FileLock('/tmp/td.pid')
-)
-
-print "bar"
-with context:
-    print "foo"
-    main()
-print "baz"
+    def run(self):
+        print 'Run called'
+        i = 0
+        while True:
+            i += 1
+            print 'loop %d' %i
+            time.sleep(5)
 
 
+
+if __name__ == '__main__':
+    instance = myapp()
+    runner = daemon.runner.DaemonRunner(instance)
+    runner.parse_args()
