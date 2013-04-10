@@ -9,7 +9,13 @@ class myapp(object):
     pidfile_path = '/tmp/tbd.pid'
     running = False
 
+    def cleanup(self, *agrs, **kwargs):
+        print "Cleaning up"
+        os.unlink('tbd.txt')
+
     def run(self):
+        import atexit
+        atexit.register(self.cleanup)
         print 'Run called'
         self.running = True
         i = 0
@@ -19,9 +25,10 @@ class myapp(object):
             with open('tbd.txt', 'a') as f:
                 f.write('loop %d\n' %i)
             time.sleep(5)
-        os.unlink('tbd.txt')
+        #self.cleanup()
 
     def stop(self, *args, **kwargs):
+        print "Stopping via stop()"
         self.running = False
 
 
@@ -47,7 +54,8 @@ if __name__ == '__main__':
             print "Not running"
             sys.exit(1)
         try:
-            os.kill(pid, signal.SIGUSR1)
+            #os.kill(pid, signal.SIGUSR1)
+            os.kill(pid, signal.SIGTERM)
             sys.exit(0)
         except OSError, exc:
             print "Failed to terminate %(pid)d: %(exc)s" % vars()
