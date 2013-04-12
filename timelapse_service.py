@@ -36,7 +36,6 @@ class capture_api(object):
             if self.execute(*args):
                 return True
             time.sleep(1)
-        # TODO: raise exception instead ??
         return False
 
     def execute(self, *args):
@@ -171,6 +170,7 @@ if __name__ == '__main__':
         burrdaemon.run(instance.run, dir=os.path.dirname(instance.pidfile_path), ident='timelapse_service', pidFilePath=instance.pidfile_path)
         sys.exit(0)
 
+    wait_for_exit = datetime.timedelta(seconds=10)
     if (sys.argv[1] == 'stop'):
         if not pid:
             msg =  "Not running"
@@ -179,8 +179,48 @@ if __name__ == '__main__':
             sys.exit(1)
         try:
             os.kill(pid, signal.SIGUSR1)
-            #os.kill(pid, signal.SIGTERM)
-            sys.exit(0)
+            wait_started = datetime.datetime.now()
+            while True:
+                if not burrdaemon.readPidFile(instance.pidfile_path):
+                    # Process exited ok
+                    sys.exit(0)
+                now = datetime.datetime.now()
+                if wait_started + wait_for_exit < now:
+                    break
+                time.sleep(1)
+                
+            msg =  "SIGUSR1 did not stop the child, trying SIGTERM"
+            print msg
+            syslog.syslog(msg)
+            os.kill(pid, signal.SIGTERM)
+            wait_started = datetime.datetime.now()
+            while True:
+                if not burrdaemon.readPidFile(instance.pidfile_path):
+                    # Process exited ok
+                    sys.exit(0)
+                now = datetime.datetime.now()
+                if wait_started + wait_for_exit < now:
+                    break
+                time.sleep(1)
+
+            msg =  "SIGTERM did not stop the child, trying SIGKILL"
+            print msg
+            syslog.syslog(msg)
+            os.kill(pid, signal.SIGKILL)
+            wait_started = datetime.datetime.now()
+            while True:
+                if not burrdaemon.readPidFile(instance.pidfile_path):
+                    # Process exited ok
+                    sys.exit(0)
+                now = datetime.datetime.now()
+                if wait_started + wait_for_exit < now:
+                    break
+                time.sleep(1)
+                
+            msg =  "SIGKILL did not work, giving up. PID is %s" % pid
+            print msg
+            syslog.syslog(msg)
+            sys.exit(1)
         except OSError, exc:
             msg = "Failed to terminate %(pid)d: %(exc)s" % vars()
             print msg
