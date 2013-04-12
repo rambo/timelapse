@@ -34,17 +34,19 @@ class capture_api(object):
             d -= 1
             if self.execute(*args):
                 return True
+            time.sleep(1)
         # TODO: raise exception instead ??
         return False
 
     def execute(self, *args):
         try:
-            retcode = subprocess.call([self.capture_cmd, *args])
+            call_list = (self.capture_cmd, ' ' .join(args))
+            retcode = subprocess.call(call_list)
             if retcode < 0:
-                print >>sys.stderr, "Child was terminated by signal", -retcode
+                print >>sys.stderr, "Command %s was terminated by signal %d" % (repr(call_list), retcode)
                 return False
             if retcode > 0:
-                print >>sys.stderr, "Child returned", retcode
+                print >>sys.stderr, "Command %s returned %d" % (repr(call_list), retcode)
                 return False
             return True
         except OSError as e:
@@ -78,7 +80,7 @@ class timelapse_service(object):
         # Initializations
         self.photo_dir = os.path.join(config['images_dir'], datetime.datetime.now().strftime('%Y%m%d_%H%M'))
         mkdir_p(self.photo_dir)
-        if not self.init_camera():
+        if not self.restart_camera(): # Use restart just in case another process has left capture into weird state
             print >>sys.stderr, "Camera init failed"
             return
         
@@ -91,6 +93,8 @@ class timelapse_service(object):
 
     def restart_camera(self):
         self.shutdown_camera()
+        # Give the camera time to shut down properly
+        time.sleep(10)
         return self.init_camera()
 
     def shutdown_camera(self):
