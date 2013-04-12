@@ -26,7 +26,7 @@ config = {
 
 class capture_api(object):
     """For now just uses the cli client, the socket api would be more expressive though..."""
-    capture_cmd = 'capture'
+    capture_cmd = '/usr/local/bin/capture'
 
     def try3(self, *args):
         d = 3
@@ -39,7 +39,7 @@ class capture_api(object):
 
     def execute(self, *args):
         try:
-            retcode = subprocess.call(self.capture_cmd, *args)
+            retcode = subprocess.call([self.capture_cmd, *args])
             if retcode < 0:
                 print >>sys.stderr, "Child was terminated by signal", -retcode
                 return False
