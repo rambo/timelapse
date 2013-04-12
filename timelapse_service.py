@@ -5,6 +5,15 @@ import burrdaemon
 import sys, os, signal, os.path, subprocess
 import time, datetime
 
+# http://stackoverflow.com/questions/600268/mkdir-p-functionality-in-python
+import os, errno
+def mkdir_p(path):
+    try:
+        os.makedirs(path)
+    except OSError as exc: # Python >2.5
+        if exc.errno == errno.EEXIST and os.path.isdir(path):
+            pass
+        else: raise
 
 # Daemon config
 config = {
@@ -67,7 +76,8 @@ class timelapse_service(object):
         import atexit
         atexit.register(self.cleanup)
         # Initializations
-        self.photo_dir = os.path.joint(config['images_dir'], datetime.datetime.now().strftime('%Y%m%d_%H%M'))
+        self.photo_dir = os.path.join(config['images_dir'], datetime.datetime.now().strftime('%Y%m%d_%H%M'))
+        mkdir_p(self.photo_dir)
         if not self.init_camera():
             print >>sys.stderr, "Camera init failed"
             return
