@@ -42,8 +42,8 @@ class capture_api(object):
             print >>sys.stderr, "Execution failed:", e
             return False
 
-class capture_service(object):
-    pidfile_path = os.path.join(config['images_dir'], 'capture_service.pid')
+class timelapse_service(object):
+    pidfile_path = os.path.join(config['images_dir'], 'timelapse_service.pid')
     running = False
     api = capture_api()
     shot_count_service = 0
@@ -134,7 +134,7 @@ class capture_service(object):
 
 
 if __name__ == '__main__':
-    instance = myapp()
+    instance = timelapse_service()
     signal.signal(signal.SIGUSR1, instance.stop)
 
     if (len(sys.argv) < 2):
