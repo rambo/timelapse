@@ -10,7 +10,8 @@ import time, datetime
 config = {
     'images_dir': os.path.expanduser(os.path.join('~', 'timelapse_dumps')),
     'max_shots': 50, # How many shots max take before restarting the camera
-    'max_time': 1200, # How many seconds max to keep the camera on without restarting
+    'max_time': datetime.timedelta(seconds=1200), # How many seconds max to keep the camera on without restarting
+    'shot_interval': datetime.timedelta(seconds=30),
 }
 
 
@@ -45,9 +46,11 @@ class capture_service(object):
     pidfile_path = os.path.join(config['images_dir'], 'capture_service.pid')
     running = False
     api = capture_api()
-    shot_count = 0
+    shot_count_service = 0
+    shot_count_camera = 0
     start_time = None
-    camere_init_time = None
+    camera_init_time = None
+    last_photo_time = None
     photo_dir = None
 
     def cleanup(self, *agrs, **kwargs):
@@ -76,13 +79,16 @@ class capture_service(object):
     def stop(self, *args, **kwargs):
         self.running = False
 
+    def restart_camera(self):
+        self.shutdown_camera()
+        return self.init_camera()
+
     def shutdown_camera(self):
         api.try3('quit')
-        camere_init_time = None
-        
+        camera_init_time = None
 
     def init_camera(self):
-        self.camere_init_time = None
+        self.camera_init_time = None
         if not api.try3('start'):
             return False
 # Other default settings ?
@@ -90,16 +96,41 @@ class capture_service(object):
 #        api.try3('metering', 'spot')
 #        api.try3('focuspoint', 'center')
 
-        self.camere_init_time = datetime.datetime.now()
+        # Set the init time and return
+        self.shot_count_camera = 0
+        self.camera_init_time = datetime.datetime.now()
         return True
 
     def take_photo(self):
         if not self.photo_dir:
             self.photo_dir = config['images_dir']
-        return api.try3('capture', os.path.join(self.photo_dir, datetime.datetime.now().strftime('%Y%m%d_%H%M%S.jpg')))
+        try3_args = ('capture', os.path.join(self.photo_dir, datetime.datetime.now().strftime('%Y%m%d_%H%M%S.jpg')))
+        if not api.try3(*try3_args):
+            if self.restart_camera():
+                # Try once more after restarting camera
+                if not api.try3(*try3_args):
+                    return False
+            else:
+                return False
+        self.shot_count_service += 1
+        self.shot_count_camera += 1
+        self.last_photo_time = datetime.datetime.now()
+        return True
 
     def iterate(self):
-        pass
+        now = datetime.datetime.now()
+        if (   not self.last_photo_time
+            or self.last_photo_time + config['shot_interval'] < now):
+            self.take_photo()
+        
+        if (   self.shot_count_camera > config['max_shots']
+            or self.camera_init_time + config['max_time'] < now):
+            if not self.restart_camera():
+                # If camera does not come back up we're screwed
+                self.stop()
+
+        # yield cpu to other things that might want it                
+        time.sleep(0.5)
 
 
 if __name__ == '__main__':
