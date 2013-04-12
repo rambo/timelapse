@@ -104,7 +104,8 @@ class timelapse_service(object):
     def take_photo(self):
         if not self.photo_dir:
             self.photo_dir = config['images_dir']
-        try3_args = ('capture', os.path.join(self.photo_dir, datetime.datetime.now().strftime('%Y%m%d_%H%M%S.jpg')))
+        photo_path = os.path.join(self.photo_dir, datetime.datetime.now().strftime('%Y%m%d_%H%M%S.jpg'))
+        try3_args = ('capture', photo_path)
         if not api.try3(*try3_args):
             if self.restart_camera():
                 # Try once more after restarting camera
@@ -112,6 +113,7 @@ class timelapse_service(object):
                     return False
             else:
                 return False
+        print "Saved to %s" % photo_path
         self.shot_count_service += 1
         self.shot_count_camera += 1
         self.last_photo_time = datetime.datetime.now()
