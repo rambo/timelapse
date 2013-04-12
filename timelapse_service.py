@@ -140,6 +140,7 @@ class timelapse_service(object):
             self.take_photo()
         
         if (   self.shot_count_camera > config['max_shots']
+            or not self.camera_init_time
             or self.camera_init_time + config['max_time'] < now):
             if not self.restart_camera():
                 # If camera does not come back up we're screwed
