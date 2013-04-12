@@ -4,6 +4,7 @@
 import burrdaemon
 import sys, os, signal, os.path, subprocess
 import time, datetime
+import syslog
 
 # http://stackoverflow.com/questions/600268/mkdir-p-functionality-in-python
 import os, errno
@@ -157,11 +158,14 @@ if __name__ == '__main__':
         print "Use 'start' or 'stop' as argument'"
         sys.exit(1)
 
+    syslog.syslog('Called with %s' % sys.argv[1])
     pid = burrdaemon.readPidFile(instance.pidfile_path)
 
     if (sys.argv[1] == 'start'):
         if pid:
-            print "Running as PID %d" % pid
+            msg = "Running as PID %d" % pid
+            print msg
+            syslog.syslog(msg)
             sys.exit(1)
         signal.signal(signal.SIGUSR1, instance.stop)
         burrdaemon.run(instance.run, dir=os.path.dirname(instance.pidfile_path), ident='timelapse_service', pidFilePath=instance.pidfile_path)
@@ -169,14 +173,18 @@ if __name__ == '__main__':
 
     if (sys.argv[1] == 'stop'):
         if not pid:
-            print "Not running"
+            msg =  "Not running"
+            print msg
+            syslog.syslog(msg)
             sys.exit(1)
         try:
             os.kill(pid, signal.SIGUSR1)
             #os.kill(pid, signal.SIGTERM)
             sys.exit(0)
         except OSError, exc:
-            print "Failed to terminate %(pid)d: %(exc)s" % vars()
+            msg = "Failed to terminate %(pid)d: %(exc)s" % vars()
+            print msg
+            syslog.syslog(msg)
             sys.exit(1)
 
     print "Unknown command '%s'" % sys.argv[1]
