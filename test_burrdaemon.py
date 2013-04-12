@@ -34,7 +34,6 @@ class myapp(object):
 
 if __name__ == '__main__':
     instance = myapp()
-    signal.signal(signal.SIGUSR1, instance.stop)
 
     if (len(sys.argv) < 2):
         print "Use 'start' or 'stop' as argument'"
@@ -46,6 +45,7 @@ if __name__ == '__main__':
         if pid:
             print "Running as PID %d" % pid
             sys.exit(1)
+        signal.signal(signal.SIGUSR1, instance.stop)
         burrdaemon.run(instance.run, dir='/tmp', ident='tbd', pidFilePath=instance.pidfile_path)
         sys.exit(0)
 
