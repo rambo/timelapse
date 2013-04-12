@@ -94,17 +94,17 @@ class timelapse_service(object):
         return self.init_camera()
 
     def shutdown_camera(self):
-        api.try3('quit')
+        self.api.try3('quit')
         camera_init_time = None
 
     def init_camera(self):
         self.camera_init_time = None
-        if not api.try3('start'):
+        if not self.api.try3('start'):
             return False
 # Other default settings ?
-#        api.try3('zoom', 0)
-#        api.try3('metering', 'spot')
-#        api.try3('focuspoint', 'center')
+#        self.api.try3('zoom', 0)
+#        self.api.try3('metering', 'spot')
+#        self.api.try3('focuspoint', 'center')
 
         # Set the init time and return
         self.shot_count_camera = 0
@@ -116,10 +116,10 @@ class timelapse_service(object):
             self.photo_dir = config['images_dir']
         photo_path = os.path.join(self.photo_dir, datetime.datetime.now().strftime('%Y%m%d_%H%M%S.jpg'))
         try3_args = ('capture', photo_path)
-        if not api.try3(*try3_args):
+        if not self.api.try3(*try3_args):
             if self.restart_camera():
                 # Try once more after restarting camera
-                if not api.try3(*try3_args):
+                if not self.api.try3(*try3_args):
                     return False
             else:
                 return False
