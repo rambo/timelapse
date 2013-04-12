@@ -147,7 +147,7 @@ if __name__ == '__main__':
             print "Running as PID %d" % pid
             sys.exit(1)
         signal.signal(signal.SIGUSR1, instance.stop)
-        burrdaemon.run(instance.run, dir='/tmp', ident='tbd', pidFilePath=instance.pidfile_path)
+        burrdaemon.run(instance.run, dir=os.path.dirname(instance.pidfile_path), ident='timelapse_service', pidFilePath=instance.pidfile_path)
         sys.exit(0)
 
     if (sys.argv[1] == 'stop'):
