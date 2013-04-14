@@ -36,10 +36,21 @@ if __name__ == '__main__':
     instance = myapp()
 
     if (len(sys.argv) < 2):
-        print "Use 'start' or 'stop' as argument'"
+        print "Use 'start', 'stop' or 'status' as argument"
         sys.exit(1)
 
     pid = burrdaemon.readPidFile(instance.pidfile_path)
+
+    if (sys.argv[1] == 'status'):
+        if pid:
+            msg = "Running as PID %d" % pid
+            print msg
+            sys.exit(0)
+        else:
+            msg =  "Not running"
+            print msg
+            sys.exit(1)
+
 
     if (sys.argv[1] == 'start'):
         if pid:

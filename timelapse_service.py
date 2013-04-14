@@ -24,6 +24,9 @@ config = {
     'shot_interval': datetime.timedelta(seconds=30),
 }
 
+def touch(fname, times=None):
+    with file(fname, 'a'):
+        os.utime(fname, times)
 
 class capture_api(object):
     """For now just uses the cli client, the socket api would be more expressive though..."""
@@ -67,6 +70,12 @@ class timelapse_service(object):
     def cleanup(self, *agrs, **kwargs):
         try:
             self.shutdown_camera()
+            # Write a simple status file
+            if self.photo_dir:
+                with file(os.path.join(self.photo_dir, 'done.txt'), 'a') as f:
+                    f.write('Started: %s\n' % self.start_time.strftime('%Y%m%d_%H%M%S'))
+                    f.write('Completed: %s\n' % datetime.datetime.now().strftime('%Y%m%d_%H%M%S'))
+                    f.write('Photo count: %d\n' % self.shot_count_service)
             # Other cleanup routines ?
         except Exception as e:
             print >>sys.stderr, "Exception at cleanup:", e
@@ -78,7 +87,8 @@ class timelapse_service(object):
         import atexit
         atexit.register(self.cleanup)
         # Initializations
-        self.photo_dir = os.path.join(config['images_dir'], datetime.datetime.now().strftime('%Y%m%d_%H%M'))
+        self.start_time = datetime.datetime.now()
+        self.photo_dir = os.path.join(config['images_dir'], self.start_time.strftime('%Y%m%d_%H%M'))
         mkdir_p(self.photo_dir)
         if not self.restart_camera(): # Use restart just in case another process has left capture into weird state
             print >>sys.stderr, "Camera init failed"
@@ -154,11 +164,22 @@ if __name__ == '__main__':
     instance = timelapse_service()
 
     if (len(sys.argv) < 2):
-        print "Use 'start' or 'stop' as argument'"
+        print "Use 'start', 'stop' or 'status' as argument"
         sys.exit(1)
 
     syslog.syslog('Called with %s' % sys.argv[1])
+    #print 'Called with %s' % sys.argv[1]
     pid = burrdaemon.readPidFile(instance.pidfile_path)
+
+    if (sys.argv[1] == 'status'):
+        if pid:
+            msg = "Running as PID %d" % pid
+            print msg
+            sys.exit(0)
+        else:
+            msg =  "Not running"
+            print msg
+            sys.exit(1)
 
     if (sys.argv[1] == 'start'):
         if pid:
