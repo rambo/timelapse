@@ -194,6 +194,9 @@ if __name__ == '__main__':
                 pid = burrdaemon.readPidFile(instance.pidfile_path)
                 now = datetime.datetime.now()
                 if wait_started + wait_for_done < now:
+                    msg = "Grew tired of waiting"
+                    print msg
+                    syslog.syslog(msg)
                     break
                 time.sleep(0.1)
 
