@@ -11,3 +11,14 @@ will then convert these photos into a time lapse movie.
 [motionweb]: http://www.lavrsen.dk/foswiki/bin/view/Motion
 [captureweb]: http://capture.sourceforge.net/
 
+# Making movies
+
+## Resize images
+
+    mkdir resized
+    mogrify -path resized/ -resize x1080 `find . -name *.jpg`
+
+## Encode to MP4
+
+    cat *.jpg | ffmpeg -f image2pipe -r 5 -vcodec mjpeg -i - -vcodec libx264 out.mp4
+
