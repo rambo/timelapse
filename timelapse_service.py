@@ -182,6 +182,21 @@ if __name__ == '__main__':
             sys.exit(1)
 
     if (sys.argv[1] == 'start'):
+        # If previous run is being stopped wait for it to complete
+        if (   pid
+            and os.path.exists(instance.pidfile_path+'.stopping')):
+            msg = "PID %d is being stopped, waiting" % pid
+            print msg
+            syslog.syslog(msg)
+            wait_for_done = datetime.timedelta(seconds=30)
+            wait_started = datetime.datetime.now()
+            while pid:
+                pid = burrdaemon.readPidFile(instance.pidfile_path)
+                now = datetime.datetime.now()
+                if wait_started + wait_for_done < now:
+                    break
+                time.sleep(0.1)
+
         if pid:
             msg = "Running as PID %d" % pid
             print msg
@@ -191,6 +206,14 @@ if __name__ == '__main__':
         burrdaemon.run(instance.run, dir=os.path.dirname(instance.pidfile_path), ident='timelapse_service', pidFilePath=instance.pidfile_path)
         sys.exit(0)
 
+    def stop_cleanup():
+        try:
+            unlink(instance.pidfile_path+'.stopping')
+        except OSError as e:
+            print >>sys.stderr, "cleanup failed:", e
+            return False
+        
+
     wait_for_exit = datetime.timedelta(seconds=10)
     if (sys.argv[1] == 'stop'):
         if not pid:
@@ -199,6 +222,9 @@ if __name__ == '__main__':
             syslog.syslog(msg)
             sys.exit(1)
         try:
+            import atexit
+            atexit.register(stop_cleanup)
+            touch(instance.pidfile_path+'.stopping')
             os.kill(pid, signal.SIGUSR1)
             wait_started = datetime.datetime.now()
             while True:
@@ -208,7 +234,7 @@ if __name__ == '__main__':
                 now = datetime.datetime.now()
                 if wait_started + wait_for_exit < now:
                     break
-                time.sleep(1)
+                time.sleep(0.1)
                 
             msg =  "SIGUSR1 did not stop the child, trying SIGTERM"
             print msg
@@ -222,7 +248,7 @@ if __name__ == '__main__':
                 now = datetime.datetime.now()
                 if wait_started + wait_for_exit < now:
                     break
-                time.sleep(1)
+                time.sleep(0.1)
 
             msg =  "SIGTERM did not stop the child, trying SIGKILL"
             print msg
@@ -236,7 +262,7 @@ if __name__ == '__main__':
                 now = datetime.datetime.now()
                 if wait_started + wait_for_exit < now:
                     break
-                time.sleep(1)
+                time.sleep(0.1)
                 
             msg =  "SIGKILL did not work, giving up. PID is %s" % pid
             print msg
