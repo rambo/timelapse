@@ -211,7 +211,7 @@ if __name__ == '__main__':
 
     def stop_cleanup():
         try:
-            unlink(instance.pidfile_path+'.stopping')
+            os.unlink(instance.pidfile_path+'.stopping')
         except OSError as e:
             print >>sys.stderr, "cleanup failed:", e
             return False
