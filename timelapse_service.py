@@ -167,43 +167,56 @@ if __name__ == '__main__':
         print "Use 'start', 'stop' or 'status' as argument"
         sys.exit(1)
 
-    syslog.syslog('Called with %s' % sys.argv[1])
+    silent = False
+    try:
+        if sys.argv[2] == 'silent':
+            silent = True
+    except Exception as e:
+        pass
+    
+
+    #syslog.syslog('Called with %s' % sys.argv[1])
     #print 'Called with %s' % sys.argv[1]
     pid = burrdaemon.readPidFile(instance.pidfile_path)
 
     if (sys.argv[1] == 'status'):
         if pid:
-            msg = "Running as PID %d" % pid
-            print msg
+            if not silent:
+                msg = "Running as PID %d" % pid
+                print msg
             sys.exit(0)
         else:
-            msg =  "Not running"
-            print msg
+            if not silent:
+                msg =  "Not running"
+                print msg
             sys.exit(1)
 
     if (sys.argv[1] == 'start'):
         # If previous run is being stopped wait for it to complete
         if (   pid
             and os.path.exists(instance.pidfile_path+'.stopping')):
-            msg = "PID %d is being stopped, waiting" % pid
-            print msg
-            syslog.syslog(msg)
+            if not silent:
+                msg = "PID %d is being stopped, waiting" % pid
+                print msg
+                syslog.syslog(msg)
             wait_for_done = datetime.timedelta(seconds=30)
             wait_started = datetime.datetime.now()
             while pid:
                 pid = burrdaemon.readPidFile(instance.pidfile_path)
                 now = datetime.datetime.now()
                 if wait_started + wait_for_done < now:
-                    msg = "Grew tired of waiting"
-                    print msg
-                    syslog.syslog(msg)
+                    if not silent:
+                        msg = "Grew tired of waiting"
+                        print msg
+                        syslog.syslog(msg)
                     break
                 time.sleep(0.1)
 
         if pid:
-            msg = "Running as PID %d" % pid
-            print msg
-            syslog.syslog(msg)
+            if not silent:
+                msg = "Running as PID %d" % pid
+                print msg
+                syslog.syslog(msg)
             sys.exit(1)
         signal.signal(signal.SIGUSR1, instance.stop)
         burrdaemon.run(instance.run, dir=os.path.dirname(instance.pidfile_path), ident='timelapse_service', pidFilePath=instance.pidfile_path)
@@ -220,9 +233,10 @@ if __name__ == '__main__':
     wait_for_exit = datetime.timedelta(seconds=10)
     if (sys.argv[1] == 'stop'):
         if not pid:
-            msg =  "Not running"
-            print msg
-            syslog.syslog(msg)
+            if not silent:
+                msg =  "Not running"
+                print msg
+                syslog.syslog(msg)
             sys.exit(1)
         try:
             import atexit
@@ -239,9 +253,10 @@ if __name__ == '__main__':
                     break
                 time.sleep(0.1)
                 
-            msg =  "SIGUSR1 did not stop the child, trying SIGTERM"
-            print msg
-            syslog.syslog(msg)
+            if not silent:
+                msg =  "SIGUSR1 did not stop the child, trying SIGTERM"
+                print msg
+                syslog.syslog(msg)
             os.kill(pid, signal.SIGTERM)
             wait_started = datetime.datetime.now()
             while True:
@@ -253,9 +268,10 @@ if __name__ == '__main__':
                     break
                 time.sleep(0.1)
 
-            msg =  "SIGTERM did not stop the child, trying SIGKILL"
-            print msg
-            syslog.syslog(msg)
+            if not silent:
+                msg =  "SIGTERM did not stop the child, trying SIGKILL"
+                print msg
+                syslog.syslog(msg)
             os.kill(pid, signal.SIGKILL)
             wait_started = datetime.datetime.now()
             while True:
@@ -267,9 +283,10 @@ if __name__ == '__main__':
                     break
                 time.sleep(0.1)
                 
-            msg =  "SIGKILL did not work, giving up. PID is %s" % pid
-            print msg
-            syslog.syslog(msg)
+            if not silent:
+                msg =  "SIGKILL did not work, giving up. PID is %s" % pid
+                print msg
+                syslog.syslog(msg)
             sys.exit(1)
         except OSError, exc:
             msg = "Failed to terminate %(pid)d: %(exc)s" % vars()
