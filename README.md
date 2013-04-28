@@ -20,5 +20,6 @@ will then convert these photos into a time lapse movie.
 
 ## Encode to MP4
 
+    cd resized
     cat *.jpg | ffmpeg -f image2pipe -r 5 -vcodec mjpeg -i - -vcodec libx264 out.mp4
 
