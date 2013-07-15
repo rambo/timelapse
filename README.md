@@ -23,3 +23,7 @@ will then convert these photos into a time lapse movie.
     cd resized
     cat *.jpg | ffmpeg -f image2pipe -r 5 -vcodec mjpeg -i - -vcodec libx264 out.mp4
 
+## Resize with filename tagging
+
+    mogrify -path resized/ -resize x1080 -gravity southwest -stroke '#000C' -strokewidth 5 -annotate 0 '%t' -stroke  none   -fill white    -annotate 0 '%t' `find . -name *.jpg`
+
