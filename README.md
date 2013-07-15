@@ -35,3 +35,15 @@ Use [GNU Parallel][gnuparallel].
     find . -name *.jpg | parallel mogrify -path resized/ -resize x1080 -gravity southwest -stroke '\#000C' -strokewidth 5 -annotate 0 '%t' -stroke  none   -fill white    -annotate 0 '%t'
 
 [gnuparallel]: http://www.gnu.org/software/parallel/
+
+# TODO
+
+## Deflicker
+
+understand the perl-script and either incorporate it to the helpers or rewrite in python.
+
+## "Camera lost"
+
+Sometimes we lose a chunk of time, make a script to recognize this and add "camera lost" images with suitable timestamps to keep consistent flow of time.
+
+Losing a few frames is not bad but an hour worth of frames is.
