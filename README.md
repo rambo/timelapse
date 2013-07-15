@@ -25,5 +25,6 @@ will then convert these photos into a time lapse movie.
 
 ## Resize with filename tagging
 
+    mkdir resized
     mogrify -path resized/ -resize x1080 -gravity southwest -stroke '#000C' -strokewidth 5 -annotate 0 '%t' -stroke  none   -fill white    -annotate 0 '%t' `find . -name *.jpg`
 
