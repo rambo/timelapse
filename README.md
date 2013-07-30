@@ -28,7 +28,7 @@ will then convert these photos into a time lapse movie.
     mkdir resized
     mogrify -path resized/ -resize x1080 -gravity southwest -stroke '#000C' -strokewidth 5 -annotate 0 '%t' -stroke  none   -fill white    -annotate 0 '%t' `find . -name *.jpg`
 
-And if you do not have RTC on the computer you are using you might get weird timestamps, use [timestamp_adjust.py](./timestamp_adjust.py) to fix the names.
+And if you do not have RTC on the computer you are using you might get weird timestamps, use [timestamp_adjust.py](./timestamp_adjust.py) to fix the names and [timedelta_calc.py](./timedelta_calc.py) to calculate the adjust values.
 
 ## Faster resize on multicore systems
 
