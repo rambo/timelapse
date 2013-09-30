@@ -89,6 +89,7 @@ class timelapse_service(object):
         # Initializations
         self.start_time = datetime.datetime.now()
         self.photo_dir = os.path.join(config['images_dir'], self.start_time.strftime('%Y%m%d_%H%M'))
+        self.latest_path = os.path.join(config['images_dir'], 'latest.jpg')
         mkdir_p(self.photo_dir)
         if not self.restart_camera(): # Use restart just in case another process has left capture into weird state
             print >>sys.stderr, "Camera init failed"
@@ -138,6 +139,16 @@ class timelapse_service(object):
             else:
                 return False
         print "Saved to %s" % photo_path
+        # Remove old symlink (if possible)
+        try:
+            os.unlink(self.latest_path)
+        except Exception,e:
+            pass
+        # Create new symlink (if possible, if not just ignore the error)
+        try:
+            os.symlink(photo_path, self.latest_path)
+        except Exception,e:
+            pass
         self.shot_count_service += 1
         self.shot_count_camera += 1
         self.last_photo_time = datetime.datetime.now()
