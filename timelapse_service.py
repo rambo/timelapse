@@ -22,6 +22,7 @@ config = {
     'max_shots': 50, # How many shots max take before restarting the camera
     'max_time': datetime.timedelta(seconds=1200), # How many seconds max to keep the camera on without restarting
     'shot_interval': datetime.timedelta(seconds=30),
+    'time_sync_command': '/usr/local/bin/fix_camera_time.sh',
 }
 
 def touch(fname, times=None):
@@ -114,6 +115,9 @@ class timelapse_service(object):
 
     def init_camera(self):
         self.camera_init_time = None
+        
+        if (os.path.exists(config['time_sync_command'])):
+            subprocess.call((config['time_sync_command']))
         if not self.api.try3('start'):
             return False
 # Other default settings ?
