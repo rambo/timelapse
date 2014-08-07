@@ -16,7 +16,7 @@ will then convert these photos into a time lapse movie.
 ## Resize images
 
     mkdir resized
-    mogrify -path resized/ -resize x1080 `find . -name *.jpg`
+    mogrify -path resized/ -resize x1080 `find . -name '*.jpg'`
 
 ## Encode to MP4
 
@@ -26,7 +26,7 @@ will then convert these photos into a time lapse movie.
 ## Resize with filename tagging
 
     mkdir resized
-    mogrify -path resized/ -resize x1080 -gravity southwest -stroke '#000C' -strokewidth 5 -annotate 0 '%t' -stroke  none   -fill white    -annotate 0 '%t' `find . -name *.jpg`
+    mogrify -path resized/ -resize x1080 -gravity southwest -stroke '#000C' -strokewidth 5 -annotate 0 '%t' -stroke  none   -fill white    -annotate 0 '%t' `find . -name '*.jpg'`
 
 And if you do not have RTC on the computer you are using you might get weird timestamps, use [timestamp_adjust.py](./timestamp_adjust.py) to fix the names and [timedelta_calc.py](./timedelta_calc.py) to calculate the adjust values.
 
@@ -35,7 +35,7 @@ And if you do not have RTC on the computer you are using you might get weird tim
 Use [GNU Parallel][gnuparallel].
 
     mkdir resized
-    find . -name *.jpg | parallel mogrify -path resized/ -resize x1080 -gravity southwest -stroke '\#000C' -strokewidth 5 -annotate 0 '%t' -stroke  none   -fill white    -annotate 0 '%t'
+    find . -name '*.jpg' | parallel mogrify -path resized/ -resize x1080 -gravity southwest -stroke '\#000C' -strokewidth 5 -annotate 0 '%t' -stroke  none   -fill white    -annotate 0 '%t'
 
 [gnuparallel]: http://www.gnu.org/software/parallel/
 
